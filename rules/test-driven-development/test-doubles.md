@@ -1,0 +1,30 @@
+# Test doubles
+
+The word "mock" is used loosely in everyday speech to mean any kind of stand-in. Be precise. Use these five distinct kinds and call out the difference whenever the caller uses "mock" generically.
+
+## The five kinds
+
+- **Dummy** — passed to satisfy a parameter, never used. Often a zero value works (`null`, `nil`, `None`, `()` unit, `default()`, `undefined`, or a no-op closure). Use when the code under test needs an argument but won't touch it during this test.
+- **Stub** — supplies canned inputs to the code under test. Replaces a real dependency so the code can be driven down a chosen path. A stub answers; it does not assert.
+- **Spy** — a stub that also records what was called. The test asks the spy afterward and asserts on the recorded calls (`assert spy.call_count == 1`, `assertEquals(1, spy.callCount)`, etc.). Verification happens in the test after the exercise phase.
+- **Mock** — a spy that knows its own expectations in advance and fails the test itself when called incorrectly. Verification happens implicitly when the test ends, or immediately when an unexpected call arrives.
+- **Fake** — a working alternative implementation, simpler than the real thing (in-memory database, in-memory file system, fake HTTP server). Used when the real dependency is too slow, unavailable, or has unwanted side effects. Not used for verification — it just behaves.
+
+## "Mock the database" — what they actually want
+
+When the caller says "mock the database," ask which they mean. Almost always:
+- A stub (return canned rows) for read-side tests.
+- A fake (in-memory implementation behaving like a database) for richer scenarios.
+- A true mock only when the test's purpose is verifying that the code under test *invoked the right operation* on the database — a different, rarer concern.
+
+## Only substitute doubles for types you own
+
+Do not substitute doubles for third-party libraries directly. Wrap the third-party library in an adapter you control, defined in terms of your own domain. Substitute doubles for the adapter. Test the adapter itself with focused integration tests against the real library. This keeps the test brittleness contained to one place.
+
+If you find yourself substituting a double for a concrete third-party class, stop. Extract an adapter first.
+
+## How many doubles per test?
+
+Aim for one. Two if the unit truly has two collaborators worth controlling.
+
+If you need to substitute doubles for five things, the unit has too many responsibilities or you're over-specifying. Use stubs for the inputs you need to control. Reserve mock expectations for the one or two outputs whose interaction is the actual subject of the test.

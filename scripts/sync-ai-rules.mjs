@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 // sync-ai-rules.mjs
 //
-// Single source of truth: .claude/rules/**.  This script regenerates the rule
-// catalogs for the other AI coding tools (Cursor, GitHub Copilot, Windsurf) so
-// each tool folder is self-contained and grab-and-go.
+// Single source of truth: rules/ (repo root).  This script regenerates the rule
+// catalogs for every supported tool (Claude Code, Cursor, GitHub Copilot,
+// Windsurf) so each tool folder is self-contained and grab-and-go.
 //
 // It ONLY writes the per-catalog rule subdirs it owns. Hand-authored files
 // (the auditor "agent" files, prompts, workflows, READMEs) live elsewhere in
 // each tool folder and are never touched here.
 //
 // Usage:  node scripts/sync-ai-rules.mjs
-// No dependencies. Re-run after editing anything under .claude/rules/.
+// No dependencies. Re-run after editing anything under rules/.
 
 import {
   readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, existsSync,
@@ -19,12 +19,19 @@ import { join, dirname, relative, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SRC = join(ROOT, '.claude', 'rules');
+const SRC = join(ROOT, 'rules');
 const CATALOGS = ['clean-code', 'architecture-scalability', 'test-driven-development'];
 
 // Each target maps a catalog name to an output dir, picks a file extension, and
 // builds tool-specific YAML frontmatter from the parsed rule.
 const TARGETS = [
+  {
+    name: 'Claude Code',
+    dir: (cat) => join(ROOT, '.claude', 'rules', cat),
+    ext: '.md',
+    // Verbatim mirror, no frontmatter: Claude reads the plain rule files.
+    frontmatter: () => '',
+  },
   {
     name: 'Cursor',
     dir: (cat) => join(ROOT, '.cursor', 'rules', cat),
@@ -111,7 +118,8 @@ function run() {
       for (const t of TARGETS) {
         const outDir = t.dir(cat);
         mkdirSync(outDir, { recursive: true });
-        writeFileSync(join(outDir, base + t.ext), `${t.frontmatter(rule)}\n${raw}`, 'utf8');
+        const fm = t.frontmatter(rule);
+        writeFileSync(join(outDir, base + t.ext), fm ? `${fm}\n${raw}` : raw, 'utf8');
         counts[t.name]++;
       }
     }
@@ -121,7 +129,7 @@ function run() {
   for (const t of TARGETS) {
     console.log(`  ${t.name.padEnd(15)} ${counts[t.name]} files  (${relative(ROOT, t.dir('<catalog>'))})`);
   }
-  console.log('Source of truth: .claude/rules/  — do not hand-edit generated catalog subdirs.');
+  console.log('Source of truth: rules/  (do not hand-edit generated catalog subdirs).');
 }
 
 run();

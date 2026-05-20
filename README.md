@@ -45,13 +45,13 @@ Every rule is one small Markdown file with a stable **cite-as** tag, a principle
 
 | Catalog | Source path | Files |
 |---|---|---|
-| Clean code | `.claude/rules/clean-code/` | 10 |
-| Architecture & scalability | `.claude/rules/architecture-scalability/` | 37 rules + `_index.md` |
-| Test-driven development | `.claude/rules/test-driven-development/` | 10 |
+| Clean code | `rules/clean-code/` | 10 |
+| Architecture & scalability | `rules/architecture-scalability/` | 37 rules + `_index.md` |
+| Test-driven development | `rules/test-driven-development/` | 10 |
 
 > ⚠️ The architecture catalog is large, so it ships an `_index.md` the lens reads first to pick which rules apply. The two smaller catalogs are listed inline in each tool's auditor file.
 
-These paths are the source of truth. The same rules are mirrored, with tool-specific frontmatter, into `.cursor/rules/`, `.github/instructions/`, and `.windsurf/rules/` by the sync script.
+These paths are the single source of truth. The same rules are mirrored into every tool catalog (`.claude/rules/`, `.cursor/rules/`, `.github/instructions/`, `.windsurf/rules/`), with tool-specific frontmatter, by the sync script.
 
 <br>
 
@@ -59,19 +59,20 @@ These paths are the source of truth. The same rules are mirrored, with tool-spec
 
 ```text
 .
-├── .claude/                       # Claude Code: sub-agents, /review command, rules (source of truth)
+├── rules/                         # source of truth (58 rule files)
+│   ├── clean-code/                       # 10 rules
+│   ├── architecture-scalability/         # 37 rules + _index.md
+│   └── test-driven-development/          # 10 rules
+├── .claude/                       # Claude Code: sub-agents, /review command, generated rules mirror
 │   ├── agents/
 │   ├── commands/                  # review.md (the /review orchestrator)
-│   └── rules/
-│       ├── clean-code/                   # 10 rules
-│       ├── architecture-scalability/     # 37 rules + _index.md
-│       └── test-driven-development/      # 10 rules
+│   └── rules/                     # generated from rules/
 ├── .cursor/rules/                 # Cursor: *-auditor.mdc + review.mdc + generated catalogs
 ├── .github/                       # GitHub Copilot: copilot-instructions.md + prompts/ + generated instructions/
 ├── .windsurf/                     # Windsurf: *-auditor.md + workflows/ + generated rule catalogs
 ├── AGENTS.md                      # neutral, any AGENTS.md-aware tool
 └── scripts/
-    └── sync-ai-rules.mjs          # regenerates the per-tool catalogs from .claude/rules/
+    └── sync-ai-rules.mjs          # regenerates every tool's catalog from rules/
 ```
 
 <br>
@@ -115,7 +116,7 @@ Copy `AGENTS.md` to the repo root. Supporting agents (Claude Code, Cursor, Copil
 
 ## 📜 Script for syncing
 
-`.claude/rules/` is canonical. After editing any rule, regenerate the other tools' catalogs:
+`rules/` is canonical. After editing any rule, regenerate every tool's catalog:
 
 > ⚠️ Requires [Node.js](https://nodejs.org/en/download/current) to run
 
@@ -123,7 +124,7 @@ Copy `AGENTS.md` to the repo root. Supporting agents (Claude Code, Cursor, Copil
 node scripts/sync-ai-rules.mjs
 ```
 
-It rewrites the Cursor, Copilot, and Windsurf rule catalogs from the source, applying each tool's frontmatter. The hand-authored auditor, command, prompt, and workflow files are never touched, and you should not hand-edit the generated catalog subdirs.
+It rewrites every tool's rule catalog (Claude Code, Cursor, Copilot, Windsurf) from the source, applying each tool's frontmatter. The hand-authored auditor, command, prompt, and workflow files are never touched, and you should not hand-edit the generated catalog subdirs.
 
 <br>
 
@@ -138,7 +139,7 @@ It rewrites the Cursor, Copilot, and Windsurf rule catalogs from the source, app
 
 ## 🧩 Extending
 
-- **Add a rule:** drop a new `.md` into the matching catalog under `.claude/rules/`. For the architecture catalog, also add a row to `_index.md`. Then run `node scripts/sync-ai-rules.mjs` to propagate it to every tool.
+- **Add a rule:** drop a new `.md` into the matching catalog under `rules/`. For the architecture catalog, also add a row to `_index.md`. Then run `node scripts/sync-ai-rules.mjs` to propagate it to every tool.
 - **Add a lens:** create the Claude sub-agent in `.claude/agents/<name>.md` (with `name` / `description` / `tools` / `model` front-matter and the shared section spine: rule-loading, workflow, `## Output format`, `## Stop conditions`, `## What you do NOT do`, `## Self-checklist before declaring done`), then mirror it into each tool folder and `AGENTS.md`.
 - **Keep lenses single-purpose.** One responsibility each; let the combined review compose them.
 

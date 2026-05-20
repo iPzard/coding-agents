@@ -1,4 +1,4 @@
-# Cursor — clean-code / architecture / TDD rules
+# Cursor: clean-code / architecture / TDD rules
 
 Cursor port of the three review lenses. Grab this `.cursor/` folder (plus keep `AGENTS.md` if you want the neutral fallback) and drop it into your project.
 
@@ -17,7 +17,7 @@ Cursor port of the three review lenses. Grab this `.cursor/` folder (plus keep `
 
 ## How it works here
 
-- The four top-level `*.mdc` files are **Agent Requested** rules (`alwaysApply: false`, description-driven). Cursor pulls one in when its description matches what you're doing — e.g. ask it to "review this for clean-code issues" or "do a full review".
+- The four top-level `*.mdc` files are **Agent Requested** rules (`alwaysApply: false`, description-driven). Cursor pulls one in when its description matches what you're doing; e.g. ask it to "review this for clean-code issues" or "do a full review".
 - The catalog files are also Agent Requested: each auditor reads only the rule files relevant to the code in front of it, mirroring the original lazy-loading design.
 
 ## What survives, what degrades
@@ -27,4 +27,4 @@ Cursor port of the three review lenses. Grab this `.cursor/` folder (plus keep `
 
 ## Editing rules
 
-Don't hand-edit the generated catalog subdirs. Edit `.claude/rules/**` (the source of truth) and re-run `node scripts/sync-ai-rules.mjs`.
+Don't hand-edit the generated catalog subdirs. Edit `rules/**` at the repo root (the source of truth) and re-run `node scripts/sync-ai-rules.mjs`.
