@@ -1,89 +1,98 @@
-# 🤖 Clean-Code Agents for Claude Code
+# 🤖 Code Quality Agents for AI Coding Tools
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-subagents-704cb6?style=for-the-badge)](https://docs.claude.com/en/docs/claude-code/sub-agents)
-[![Agents](https://img.shields.io/badge/agents-3-704cb6?style=for-the-badge)](#-whats-inside)
-[![Rules](https://img.shields.io/badge/rule_files-57-704cb6?style=for-the-badge)](#-rule-catalogs)
+[![AOI](https://img.shields.io/badge/aio-AI_tools-704cb6?style=for-the-badge)](#-supported-tools)
 [![Language](https://img.shields.io/badge/language-agnostic-704cb6?style=for-the-badge)](#-how-it-works)
 
-> Three proactive Claude Code review agents — **clean code**, **scalable architecture**, and **test-driven development** — each backed by a catalog of bite-sized, citable rules distilled from the canonical software-engineering books.
+> Three code-review lenses (clean code, scalable architecture, and test-driven development), each backed by a catalog of bite-sized, citable rules distilled from the canonical software-engineering books. Drop them into Claude Code, Cursor, GitHub Copilot, Windsurf, or any AGENTS.md aware tool.
 
-They are language-agnostic and drop into the `.claude/` folder of any project. No build step, no dependencies — just Markdown that Claude Code reads.
+The rules are language-agnostic and need no build step or dependencies, just Markdown the tools read.
+
+<br>
+
+## 🧰 Supported tools
+
+Copy the folder that matches your tool into your project (for the neutral option, copy the `AGENTS.md` file). Each folder is self-contained.
+
+| Tool | Folder | Entry points | Combined review |
+|---|---|---|---|
+| Claude Code | `.claude/` | proactive sub-agents in `agents/` | `/review` command |
+| Cursor | `.cursor/` | `*-auditor.mdc` rules | `review.mdc` |
+| GitHub Copilot | `.github/` | `copilot-instructions.md` | `prompts/review.prompt.md` |
+| Windsurf | `.windsurf/` | `*-auditor.md` rules | `workflows/review.md` |
+| Any (neutral) | `AGENTS.md` | single root file, read by every AGENTS.md-aware agent | run the lenses inline |
+
+> ⚠️ **Sub-agents are a Claude Code feature.** Only Claude Code auto-routes work to the right lens and runs the orchestrated `/review` as a parallel fan-out. On every other tool the lenses run sequentially and are invoked explicitly: same rules, same findings, no fan-out. See each folder's `README` for the specifics.
 
 <br>
 
 ## 🧠 What's inside
 
-Each agent reviews newly written or about-to-be-committed code, flags violations against a named rule, **applies the mechanical fixes directly**, and proposes the ones that need your judgment.
+Each lens reviews newly written or about-to-be-committed code, flags violations against a named rule, **applies the mechanical fixes directly**, and proposes the ones that need your judgment.
 
-| Agent | What it does | Fires when… | Tools |
-|---|---|---|---|
-| `clean-code-auditor` | Naming, function/class size, abstraction layers, comments, error handling, duplication, coupling, complexity, design smells. | You just wrote or refactored non-trivial code. | `Read` `Edit` `Grep` `Glob` |
-| `architecture-scalability-auditor` | Clean-architecture **and** scalability: SOLID, dependency rule, bounded contexts, aggregates, layering, partition keys, replication, fan-out, idempotency, distributed-monolith smells. | New code lands, especially before a commit. | `Read` `Edit` `Grep` `Glob` |
-| `test-driven-development-auditor` | Writes failing tests first, then production code (red → green → refactor). Reviews existing tests for the classic problems. | You implement, modify, or bug-fix production code. | `Read` `Write` `Edit` `Grep` `Glob` `Bash` |
+| Lens | What it checks | Reach for it when |
+|---|---|---|
+| Clean code | Naming, function/class size, abstraction layers, comments, error handling, duplication, coupling, complexity, design smells. | You just wrote or refactored non-trivial code. |
+| Architecture & scalability | SOLID, dependency rule, bounded contexts, aggregates, layering; partition keys, replication, fan-out, idempotency, hot spots, distributed-monolith smells. | New code lands, especially before a commit. |
+| Test-driven development | Failing test first, then production code (red → green → refactor); reviews existing tests for the classic problems. | You implement, modify, or bug-fix production code. |
 
-> All three run on the `opus` model and **load only the rule files a given task needs** — never the whole catalog.
+In Claude Code each lens ships as a proactive sub-agent (`clean-code-auditor`, `architecture-scalability-auditor`, `test-driven-development-auditor`) on the `opus` model, with `Read` `Edit` `Grep` `Glob` (plus `Bash` for TDD). Other tools deliver the same lenses as native rule sets. Every lens **loads only the rule files a task needs**, never the whole catalog.
 
 <br>
 
 ## 📚 Rule catalogs
 
-Every rule is one small Markdown file with a stable **cite-as** tag, a principle, red flags, and an "apply directly vs propose only" split. Agents pull just the relevant files per review.
+Every rule is one small Markdown file with a stable **cite-as** tag, a principle, red flags, and an "apply directly vs propose only" split. A lens pulls just the relevant files per review.
 
-| Catalog | Path | Files |
+| Catalog | Source path | Files |
 |---|---|---|
 | Clean code | `.claude/rules/clean-code/` | 10 |
 | Architecture & scalability | `.claude/rules/architecture-scalability/` | 37 rules + `_index.md` |
 | Test-driven development | `.claude/rules/test-driven-development/` | 10 |
 
-> ⚠️ The architecture catalog is large, so it ships an `_index.md` the agent reads first to pick which rules apply. The two smaller catalogs are listed inline in their agent's prompt.
+> ⚠️ The architecture catalog is large, so it ships an `_index.md` the lens reads first to pick which rules apply. The two smaller catalogs are listed inline in each tool's auditor file.
+
+These paths are the source of truth. The same rules are mirrored, with tool-specific frontmatter, into `.cursor/rules/`, `.github/instructions/`, and `.windsurf/rules/` by the sync script.
 
 <br>
 
 ## 🗂️ Layout
 
 ```text
-.claude/
-├── agents/
-│   ├── architecture-scalability-auditor.md
-│   ├── clean-code-auditor.md
-│   └── test-driven-development-auditor.md
-├── commands/
-│   └── review.md                       # the /review orchestrator
-└── rules/
-    ├── architecture-scalability/       # 37 rules + _index.md
-    ├── clean-code/                     # 10 rules
-    └── test-driven-development/         # 10 rules
+.
+├── .claude/                       # Claude Code: sub-agents, /review command, rules (source of truth)
+│   ├── agents/
+│   ├── commands/                  # review.md (the /review orchestrator)
+│   └── rules/
+│       ├── clean-code/                   # 10 rules
+│       ├── architecture-scalability/     # 37 rules + _index.md
+│       └── test-driven-development/      # 10 rules
+├── .cursor/rules/                 # Cursor: *-auditor.mdc + review.mdc + generated catalogs
+├── .github/                       # GitHub Copilot: copilot-instructions.md + prompts/ + generated instructions/
+├── .windsurf/                     # Windsurf: *-auditor.md + workflows/ + generated rule catalogs
+├── AGENTS.md                      # neutral, any AGENTS.md-aware tool
+└── scripts/
+    └── sync-ai-rules.mjs          # regenerates the per-tool catalogs from .claude/rules/
 ```
 
 <br>
 
-## 🚀 Usage
+## 🚀 Install & use
 
-### Drop into a project
+Copy your tool's folder into the target project, then use it as below.
 
-Copy the three folders into the target project's `.claude/` (create it if absent):
-
-```bash
-cp -r .claude/agents .claude/rules .claude/commands /path/to/your-project/.claude/
-```
-
-That's it — Claude Code discovers agents, rules, and commands automatically on its next run.
-
-### Let the agents trigger themselves
+### Claude Code
 
 The agents are **proactive**: Claude Code routes to them on its own when it detects matching work. You can also call one explicitly.
 
 ```text
-# proactive — Claude picks the right auditor
+# proactive: Claude picks the right auditor
 "Review the OrderService I just wrote before I commit."
 
-# explicit — name the agent and the target
+# explicit: name the agent and the target
 "Use the clean-code-auditor on src/payments/refund.ts"
 ```
 
-### One-shot, all-lens review — `/review`
-
-`/review` runs **all three auditors in a single pass**, dedupes overlapping findings, applies the safe fixes centrally, and prints one unified report. (Subagents can't call subagents, so the command orchestrates from the main thread and runs the auditors read-only to avoid edit collisions.)
+`/review` runs **all three auditors in a single pass**, dedupes overlapping findings, applies the safe fixes centrally, and prints one unified report. (Sub-agents can't call sub-agents, so the command orchestrates from the main thread and runs the auditors read-only to avoid edit collisions.)
 
 ```text
 /review                 # uncommitted changes vs HEAD (default)
@@ -92,75 +101,75 @@ The agents are **proactive**: Claude Code routes to them on its own when it dete
 /review all             # the whole tracked source tree
 ```
 
+### Cursor, Copilot, Windsurf
+
+- **Cursor** (`.cursor/`): rules auto-pull by description. Ask for a review ("review this for clean-code issues") or run the combined `review.mdc` pass.
+- **GitHub Copilot** (`.github/`): `copilot-instructions.md` applies automatically; run a full pass with the `/review` prompt file.
+- **Windsurf** (`.windsurf/`): rules pull on model decision; run the `/review` workflow for a full pass.
+
+### Any AGENTS.md-aware tool
+
+Copy `AGENTS.md` to the repo root. Supporting agents (Claude Code, Cursor, Copilot, Windsurf, Gemini CLI, and others) read it automatically and apply the lenses on demand.
+
 <br>
 
-## 🧰 Use with other AI tools
+## 📜 Script for syncing
 
-The rules are tool-agnostic, so the same catalog is mirrored into the native format of other AI coding tools. Grab whichever folder fits your tool — each is self-contained.
+`.claude/rules/` is canonical. After editing any rule, regenerate the other tools' catalogs:
 
-| Tool | Folder | Entry points |
-|---|---|---|
-| Claude Code | `.claude/` | sub-agents in `agents/`, `/review` in `commands/` |
-| Cursor | `.cursor/` | `*-auditor.mdc` + `review.mdc` |
-| GitHub Copilot | `.github/` | `copilot-instructions.md` + `prompts/review.prompt.md` |
-| Windsurf | `.windsurf/` | `*-auditor.md` + `workflows/review.md` |
-| Any (neutral) | `AGENTS.md` | single root file, read by all AGENTS.md-aware agents |
-
-**`.claude/rules/` is the single source of truth.** The per-tool rule catalogs are generated from it:
+> ⚠️ Requires [Node.js](https://nodejs.org/en/download/current) to run
 
 ```bash
-node scripts/sync-ai-rules.mjs   # regenerate .cursor, .github, .windsurf rule catalogs
+node scripts/sync-ai-rules.mjs
 ```
 
-Edit a rule in `.claude/rules/**`, re-run the script, and every tool folder updates. The hand-authored auditor/command files in each folder are not touched by the script.
-
-> ⚠️ **Sub-agents are Claude-Code-only.** Proactive auto-routing and the parallel, orchestrated `/review` fan-out exist only under `.claude/`. On every other tool the lenses run sequentially and are invoked explicitly — same rules and findings, no fan-out. See each folder's `README` for specifics.
+It rewrites the Cursor, Copilot, and Windsurf rule catalogs from the source, applying each tool's frontmatter. The hand-authored auditor, command, prompt, and workflow files are never touched, and you should not hand-edit the generated catalog subdirs.
 
 <br>
 
 ## ⚙️ How it works
 
-- **Lazy rule loading.** An agent maps the code in front of it to rule triggers, then reads only those files — fast, cheap, focused.
-- **Fix vs propose.** Each rule file marks which fixes are *mechanical* (applied in place via `Edit`) and which *need judgment* (reported, not guessed). You can override any applied fix.
+- **Lazy rule loading.** A lens maps the code in front of it to rule triggers, then reads only those files: fast, cheap, focused. Description-driven in Claude Code, Cursor, and Windsurf; Copilot applies its instruction files by glob.
+- **Fix vs propose.** Each rule file marks which fixes are *mechanical* (applied in place) and which *need judgment* (reported, not guessed). You can override any applied fix.
 - **Cited findings.** Every finding names the rule it came from, so the reasoning is traceable to a source.
-- **Safe orchestration.** `/review` fans out read-only, merges findings (architecture owns structural calls, clean-code owns local craft on overlaps), then applies fixes one at a time.
+- **One-pass review.** The combined review runs all three lenses and merges findings (architecture owns structural calls, clean code owns local craft on overlaps). Claude Code fans out to parallel sub-agents; other tools run the lenses sequentially.
 
 <br>
 
 ## 🧩 Extending
 
-- **Add a rule:** drop a new `.md` into the matching catalog. For the architecture catalog, also add a row to `_index.md` so the agent can find it.
-- **Add an agent:** create `.claude/agents/<name>.md` with `name` / `description` / `tools` / `model` front-matter, then mirror the shared section spine: `## Rule files — load only what applies` → workflow → `## Output format` → `## Stop conditions` → `## What you do NOT do` → `## Self-checklist before declaring done`.
-- **Keep agents single-purpose.** One responsibility per agent; let `/review` compose them.
+- **Add a rule:** drop a new `.md` into the matching catalog under `.claude/rules/`. For the architecture catalog, also add a row to `_index.md`. Then run `node scripts/sync-ai-rules.mjs` to propagate it to every tool.
+- **Add a lens:** create the Claude sub-agent in `.claude/agents/<name>.md` (with `name` / `description` / `tools` / `model` front-matter and the shared section spine: rule-loading, workflow, `## Output format`, `## Stop conditions`, `## What you do NOT do`, `## Self-checklist before declaring done`), then mirror it into each tool folder and `AGENTS.md`.
+- **Keep lenses single-purpose.** One responsibility each; let the combined review compose them.
 
 <br>
 
 ## 📖 Source material
 
-The rules distill principles from these books, grouped by the agent they feed.
+The rules distill principles from these books, grouped by the lens they feed.
 
-**`clean-code-auditor` — Clean Code & Software Craftsmanship**
-- *Clean Code* — Robert C. Martin — naming, functions, code smells
-- *The Pragmatic Programmer* — Hunt & Thomas — broad principles every developer should know
-- *Refactoring* — Martin Fowler — how to safely improve existing code
-- *Code Complete* — Steve McConnell — comprehensive construction guide
-- *A Philosophy of Software Design* — John Ousterhout — managing complexity (a thoughtful counterpoint to *Clean Code*)
+**Clean code & software craftsmanship**
+- *Clean Code*, Robert C. Martin: naming, functions, code smells
+- *The Pragmatic Programmer*, Hunt & Thomas: broad principles every developer should know
+- *Refactoring*, Martin Fowler: how to safely improve existing code
+- *Code Complete*, Steve McConnell: comprehensive construction guide
+- *A Philosophy of Software Design*, John Ousterhout: managing complexity (a thoughtful counterpoint to *Clean Code*)
 
-**`architecture-scalability-auditor` — Architecture & Scalability**
-- *Clean Architecture* — Robert C. Martin — dependency rules and layering
-- *Designing Data-Intensive Applications* — Martin Kleppmann — databases, distributed systems, scalability
-- *Domain-Driven Design* — Eric Evans (with *Implementing DDD* — Vaughn Vernon — as a practical companion)
-- *Software Architecture: The Hard Parts* and *Fundamentals of Software Architecture* — Mark Richards & Neal Ford
-- *Patterns of Enterprise Application Architecture* — Martin Fowler
+**Architecture & scalability**
+- *Clean Architecture*, Robert C. Martin: dependency rules and layering
+- *Designing Data-Intensive Applications*, Martin Kleppmann: databases, distributed systems, scalability
+- *Domain-Driven Design*, Eric Evans (with *Implementing DDD*, Vaughn Vernon, as a practical companion)
+- *Software Architecture: The Hard Parts* and *Fundamentals of Software Architecture*, Mark Richards & Neal Ford
+- *Patterns of Enterprise Application Architecture*, Martin Fowler
 
-**`test-driven-development-auditor` — Test-Driven Development**
-- *Test-Driven Development by Example* — Kent Beck — the original TDD book
-- *Growing Object-Oriented Software, Guided by Tests* — Freeman & Pryce — practical outside-in TDD
-- *xUnit Test Patterns* — Gerard Meszaros — deep reference on test design
-- *Working Effectively with Legacy Code* — Michael Feathers — adding tests to untested code
+**Test-driven development**
+- *Test-Driven Development by Example*, Kent Beck: the original TDD book
+- *Growing Object-Oriented Software, Guided by Tests*, Freeman & Pryce: practical outside-in TDD
+- *xUnit Test Patterns*, Gerard Meszaros: deep reference on test design
+- *Working Effectively with Legacy Code*, Michael Feathers: adding tests to untested code
 
 <br>
 
 ## 🦟 Bugs
 
-Spot an agent misfiring; a wrong fix, a missed violation, a rule that cites the wrong thing? Bugs reported on the project's [issues page](https://github.com/iPzard/coding-agents/issues) will be exterminated as quickly as possible, be sure to include steps to reproduce so they can be spotted easily.
+Bugs reported on the project's [issues page](https://github.com/iPzard/coding-agents/issues) will be exterminated as quickly as possible, be sure to include steps to reproduce so they can be spotted easily.
