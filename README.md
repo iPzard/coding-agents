@@ -94,6 +94,30 @@ The agents are **proactive**: Claude Code routes to them on its own when it dete
 
 <br>
 
+## 🧰 Use with other AI tools
+
+The rules are tool-agnostic, so the same catalog is mirrored into the native format of other AI coding tools. Grab whichever folder fits your tool — each is self-contained.
+
+| Tool | Folder | Entry points |
+|---|---|---|
+| Claude Code | `.claude/` | sub-agents in `agents/`, `/review` in `commands/` |
+| Cursor | `.cursor/` | `*-auditor.mdc` + `review.mdc` |
+| GitHub Copilot | `.github/` | `copilot-instructions.md` + `prompts/review.prompt.md` |
+| Windsurf | `.windsurf/` | `*-auditor.md` + `workflows/review.md` |
+| Any (neutral) | `AGENTS.md` | single root file, read by all AGENTS.md-aware agents |
+
+**`.claude/rules/` is the single source of truth.** The per-tool rule catalogs are generated from it:
+
+```bash
+node scripts/sync-ai-rules.mjs   # regenerate .cursor, .github, .windsurf rule catalogs
+```
+
+Edit a rule in `.claude/rules/**`, re-run the script, and every tool folder updates. The hand-authored auditor/command files in each folder are not touched by the script.
+
+> ⚠️ **Sub-agents are Claude-Code-only.** Proactive auto-routing and the parallel, orchestrated `/review` fan-out exist only under `.claude/`. On every other tool the lenses run sequentially and are invoked explicitly — same rules and findings, no fan-out. See each folder's `README` for specifics.
+
+<br>
+
 ## ⚙️ How it works
 
 - **Lazy rule loading.** An agent maps the code in front of it to rule triggers, then reads only those files — fast, cheap, focused.

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(node scripts/sync-ai-rules.mjs)"
+    ]
+  }
+}

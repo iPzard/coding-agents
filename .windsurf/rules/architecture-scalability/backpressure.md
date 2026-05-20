@@ -1,0 +1,22 @@
+---
+trigger: model_decision
+description: "Backpressure: If a producer can outrun a consumer, the system must drop, buffer, or block. Unbounded in-memory queues are bombs — they look fine until traffi…"
+---
+
+# Backpressure
+
+**Cite as:** `[Backpressure]`
+
+## Principle
+If a producer can outrun a consumer, the system must drop, buffer, or block. Unbounded in-memory queues are bombs — they look fine until traffic spikes and the process runs out of memory.
+
+## Red flags in code
+- Unbounded in-memory queue / buffer / timer-driven accumulator with no max size.
+- A producer with no flow-control mechanism.
+- A consumer that processes asynchronously without a bounded work queue.
+
+## Apply directly (mechanical, unambiguous)
+- Add a `maxSize` / capacity to an unbounded queue when the policy is clear (drop, block, or reject).
+
+## Propose only (requires judgment)
+- Choosing the right backpressure policy (drop oldest, reject newest, block producer).

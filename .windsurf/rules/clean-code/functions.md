@@ -1,0 +1,14 @@
+---
+trigger: model_decision
+description: "Functions: - Single concern, single abstraction level. A function handles one logical task, with every statement inside it operating at roughly the same leve…"
+---
+
+# Functions
+
+- **Single concern, single abstraction level.** A function handles one logical task, with every statement inside it operating at roughly the same level of detail. Test: if you can extract a chunk into a new function whose name expresses something more than "the body of that chunk," the original function was handling more than one concern. Calls inside should sit one level of detail below the function's own name.
+- **Size:** function length is a symptom indicator, not a hard rule. Some style guides say under 10 lines; empirical research finds routines up to ~100-200 lines are fine *if they have functional cohesion and low nesting*. Real failure modes: mixed abstraction levels, deeply nested control flow, lots of locals, multiple responsibilities, comment-by-comment narration of internals.
+- **Arguments:** zero is ideal, one is good, two is OK, three needs a reason, four or more is a red flag. Long parameter lists often signal data clumps that should be an object.
+- **Flag arguments are a code smell** — `render(true)` tells the reader nothing. Split into `renderForSuite()` / `renderForSingleTest()`.
+- **Output arguments are confusing.** Return values, or mutate the owning object's state.
+- **Command-Query Separation.** A function either does something or answers something, not both. `if (set("username", "bob"))` is ambiguous about whether `set` is verb or adjective.
+- **No surprising side effects.** `checkPassword(user, pw)` must not also `Session.initialize()` — the name doesn't promise it, the caller will be burned.
