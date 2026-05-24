@@ -174,3 +174,8 @@ The rules distill principles from these books, grouped by the lens they feed.
 ## 🦟 Bugs
 
 Bugs reported on the project's [issues page](https://github.com/iPzard/coding-agents/issues) will be exterminated as quickly as possible, be sure to include steps to reproduce so they can be spotted easily.
+
+<br>
+
+## 🏷️ License
+MIT © [iPzard](https://github.com/iPzard/coding-agents/blob/master/LICENSE)
